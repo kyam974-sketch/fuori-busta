@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { generatePDF } from "../utils/pdf";
 
 const SHEET_ID = import.meta.env.VITE_SHEET_ID;
@@ -16,6 +16,8 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
   const today = new Date().toLocaleDateString("it-IT");
   const [clienti, setClienti] = useState([]);
   const [prestazioni, setPrestazioni] = useState([]);
+  const prestazioniRef = useRef([]);
+  const clientiRef = useRef([]);
   const [form, setForm] = useState({
     numero: nextNumero,
     data: today,
@@ -34,11 +36,13 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
   useEffect(() => {
     fetchSheet("Clienti", "A2:F100").then(rows => {
       const c = rows.map(r => ({ nome: r[0] || "", cf: r[1] || "" }));
+      clientiRef.current = c;
       setClienti(c);
       if (c.length) setForm(f => ({ ...f, committente: c[0].nome, cfCommittente: c[0].cf }));
     });
     fetchSheet("Prestazioni", "A2:C100").then(rows => {
       const p = rows.map(r => ({ descrizione: r[0] || "", importo: parseFloat(r[1]) || 0 }));
+      prestazioniRef.current = p;
       setPrestazioni(p);
       if (p.length) setForm(f => ({ ...f, descrizione: p[0].descrizione, lordo: p[0].importo }));
     });
@@ -50,13 +54,13 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleClienteChange = (nome) => {
-    const c = clienti.find(c => c.nome === nome);
+    const c = clientiRef.current.find(c => c.nome === nome);
     setForm(f => ({ ...f, committente: nome, cfCommittente: c?.cf || "" }));
   };
 
   const handlePrestazioneChange = (desc) => {
-    const p = prestazioni.find(p => p.descrizione === desc);
-    setForm(f => ({ ...f, descrizione: desc, lordo: p?.importo || f.lordo }));
+    const p = prestazioniRef.current.find(p => p.descrizione === desc);
+    setForm(f => ({ ...f, descrizione: desc, lordo: p?.importo ?? f.lordo }));
   };
 
   const handleSave = async () => {
