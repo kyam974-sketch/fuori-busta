@@ -93,3 +93,17 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
   .form-grid { grid-template-columns: 1fr; }
   .field.full { grid-column: 1; }
 }
+
+/* NAV TABS */
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab { background: transparent; border: none; padding: 6px 14px; font-size: 13px; font-family: var(--sans); color: var(--muted); cursor: pointer; border-radius: 6px; }
+.nav-tab.active { background: var(--bg); color: var(--text); font-weight: 500; }
+.nav-tab:hover { color: var(--text); }
+
+/* SECTION */
+.section { width: 100%; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.section-header h2 { font-size: 20px; font-weight: 600; }
+.cat-group { margin-bottom: 24px; }
+.cat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; }
+.mb { margin-bottom: 24px; }
