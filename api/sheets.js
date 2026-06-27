@@ -1,13 +1,14 @@
-import { GoogleAuth } from 'google-auth-library';
+import { google } from 'googleapis';
 
 const SHEET_ID = process.env.VITE_SHEET_ID;
 
-function getAuth() {
+function getSheets() {
   const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-  return new GoogleAuth({
+  const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
+  return google.sheets({ version: 'v4', auth });
 }
 
 export default async function handler(req, res) {
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).json({ success: false });
 
   try {
     const data = req.body;
@@ -36,29 +37,17 @@ export default async function handler(req, res) {
       ];
     }
 
-    const auth = getAuth();
-    const client = await auth.getClient();
-    const token = await client.getAccessToken();
-
-    const range = `${sheetName}!A1`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.token}`,
-      },
-      body: JSON.stringify({ values: [row] }),
+    const sheets = getSheets();
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SHEET_ID,
+      range: sheetName,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [row] },
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(JSON.stringify(err));
-    }
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 }
