@@ -37,7 +37,7 @@ export default function Clienti() {
     if (!form.nome) { setError("Il nome è obbligatorio"); return; }
     setSaving(true); setError("");
     try {
-      const res = await fetch(SCRIPT_URL, {
+      const res = await fetch("/api/sheets", {
         method: "POST",
         body: JSON.stringify({ _sheet: "Clienti", ...form }),
       });

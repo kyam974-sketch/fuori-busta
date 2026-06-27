@@ -72,7 +72,7 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
         ritenuta, netto, pagato: form.pagato,
         dataPagamento: form.dataPagamento, note: form.note,
       };
-      const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+      const res = await fetch("/api/sheets", { method: "POST", body: JSON.stringify(payload) });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       onSaved();

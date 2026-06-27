@@ -38,7 +38,7 @@ export default function Prestazioni() {
     if (!form.descrizione) { setError("La descrizione è obbligatoria"); return; }
     setSaving(true); setError("");
     try {
-      const res = await fetch(SCRIPT_URL, {
+      const res = await fetch("/api/sheets", {
         method: "POST",
         body: JSON.stringify({ _sheet: "Prestazioni", ...form }),
       });
