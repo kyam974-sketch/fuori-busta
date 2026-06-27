@@ -51,14 +51,12 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
 
   const handleClienteChange = (nome) => {
     const c = clienti.find(c => c.nome === nome);
-    set("committente", nome);
-    set("cfCommittente", c?.cf || "");
+    setForm(f => ({ ...f, committente: nome, cfCommittente: c?.cf || "" }));
   };
 
   const handlePrestazioneChange = (desc) => {
     const p = prestazioni.find(p => p.descrizione === desc);
-    set("descrizione", desc);
-    if (p?.importo) set("lordo", p.importo);
+    setForm(f => ({ ...f, descrizione: desc, lordo: p?.importo || f.lordo }));
   };
 
   const handleSave = async () => {
