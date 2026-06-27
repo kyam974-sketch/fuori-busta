@@ -40,8 +40,8 @@ export default async function handler(req, res) {
     const client = await auth.getClient();
     const token = await client.getAccessToken();
 
-    const escapedSheet = sheetName.includes(' ') ? `'${sheetName}'` : sheetName;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(escapedSheet + "!A1")}:append?valueInputOption=USER_ENTERED`;
+    const range = `${sheetName}!A1`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
