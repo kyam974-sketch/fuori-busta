@@ -34,17 +34,23 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchSheet("Clienti", "A2:F100").then(rows => {
-      const c = rows.map(r => ({ nome: r[0] || "", cf: r[1] || "" }));
+    Promise.all([
+      fetchSheet("Clienti", "A2:F100"),
+      fetchSheet("Prestazioni", "A2:C100")
+    ]).then(([clientiRows, prestazioniRows]) => {
+      const c = clientiRows.map(r => ({ nome: r[0] || "", cf: r[1] || "" }));
+      const p = prestazioniRows.map(r => ({ descrizione: r[0] || "", importo: parseFloat(r[1]) || 0 }));
       clientiRef.current = c;
-      setClienti(c);
-      if (c.length) setForm(f => ({ ...f, committente: c[0].nome, cfCommittente: c[0].cf }));
-    });
-    fetchSheet("Prestazioni", "A2:C100").then(rows => {
-      const p = rows.map(r => ({ descrizione: r[0] || "", importo: parseFloat(r[1]) || 0 }));
       prestazioniRef.current = p;
+      setClienti(c);
       setPrestazioni(p);
-      if (p.length) setForm(f => ({ ...f, descrizione: p[0].descrizione, lordo: p[0].importo }));
+      setForm(f => ({
+        ...f,
+        committente: c[0]?.nome || "",
+        cfCommittente: c[0]?.cf || "",
+        descrizione: p[0]?.descrizione || "",
+        lordo: p[0]?.importo || 0,
+      }));
     });
   }, []);
 
