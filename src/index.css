@@ -107,3 +107,15 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text); font
 .cat-group { margin-bottom: 24px; }
 .cat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; }
 .mb { margin-bottom: 24px; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 480px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+
+/* CARD ACTIONS */
+.card-actions { display: flex; gap: 4px; }
+.btn-ghost.danger { color: var(--red); border-color: transparent; }
+.btn-ghost.danger:hover { background: #FEE; }
+.btn-primary.danger { background: var(--red); }
