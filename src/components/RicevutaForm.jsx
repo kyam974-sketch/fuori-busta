@@ -88,7 +88,7 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
     setSaving(false);
   };
 
-  const handlePDF = () => generatePDF({ ...form, ritenuta, netto });
+  const handlePDF = async () => generatePDF({ ...form, ritenuta, netto });
 
   return (
     <div className="form-wrap">
