@@ -1,6 +1,24 @@
 import jsPDF from "jspdf";
 
+const SHEET_ID = import.meta.env.VITE_SHEET_ID;
+const API_KEY = import.meta.env.VITE_SHEETS_API_KEY;
+
+async function fetchProfilo() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent("Profilo!A2:B20")}?key=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.values) {
+      const obj = {};
+      data.values.forEach(([k, v]) => { obj[k] = v; });
+      return { ...obj, pagamento: obj.pagamento ? obj.pagamento.split(",") : [] };
+    }
+  } catch(e) { console.error(e); }
+  return null;
+}
+
 export async function generatePDF(r) {
+  const profilo = await fetchProfilo();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 20;
   let y = margin;
@@ -20,6 +38,11 @@ export async function generatePDF(r) {
   doc.setTextColor(30, 30, 30);
 
   // Prestatore
+  const nome = profilo?.nome || r.prestatore || "Chiara Marchese";
+  const cf = profilo?.cf || "MRCCHR74P44G716W";
+  const indirizzo = profilo?.indirizzo || "Via Senese 56/a";
+  const capCittaProv = profilo ? `${profilo.cap || ""} ${profilo.citta || ""} (${profilo.provincia || ""})`.trim() : "58100 Grosseto (GR)";
+
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(100, 100, 100);
@@ -28,13 +51,13 @@ export async function generatePDF(r) {
   doc.setTextColor(30, 30, 30);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("Chiara Marchese", margin, y);
+  doc.text(nome, margin, y);
   y += 5;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text("C.F. MRCCHR74P44G716W", margin, y);
+  doc.text(`C.F. ${cf}`, margin, y);
   y += 4;
-  doc.text("Via Senese 56/a – 58100 Grosseto (GR)", margin, y);
+  doc.text(`${indirizzo} – ${capCittaProv}`, margin, y);
 
   // Committente
   y += 12;
@@ -79,7 +102,7 @@ export async function generatePDF(r) {
   y += 8;
 
   const importiX = 210 - margin;
-  const labelX = 210 - 70;
+  const labelX = 210 - 75;
 
   const addRow = (label, val, bold = false) => {
     doc.setFontSize(9);
@@ -100,8 +123,36 @@ export async function generatePDF(r) {
   y += 4;
   addRow("Netto da corrispondere", `€ ${parseFloat(r.netto).toFixed(2)}`, true);
 
+  // Modalità di pagamento e IBAN
+  if (profilo?.pagamento?.length || profilo?.iban) {
+    y += 10;
+    doc.setDrawColor(220, 220, 220);
+    doc.line(margin, y, 210 - margin, y);
+    y += 6;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100, 100, 100);
+    doc.text("MODALITÀ DI PAGAMENTO", margin, y);
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(30, 30, 30);
+    if (profilo?.pagamento?.length) {
+      const modalita = profilo.pagamento
+        .map(p => p === "Altro" && profilo.altroPayment ? profilo.altroPayment : p)
+        .join(", ");
+      doc.text(modalita, margin, y);
+      y += 5;
+    }
+    if (profilo?.iban && profilo.pagamento?.includes("Bonifico bancario")) {
+      doc.text(`IBAN: ${profilo.iban}`, margin, y);
+      y += 4;
+      if (profilo.intestatario) { doc.text(`Intestato a: ${profilo.intestatario}`, margin, y); y += 4; }
+      if (profilo.banca) { doc.text(`Banca: ${profilo.banca}`, margin, y); y += 4; }
+    }
+  }
+
   // Note legali
-  y += 10;
+  y += 6;
   doc.setDrawColor(220, 220, 220);
   doc.line(margin, y, 210 - margin, y);
   y += 6;
@@ -114,7 +165,6 @@ export async function generatePDF(r) {
   ];
   legal.forEach(l => { doc.text(l, margin, y); y += 4; });
 
-  // Note aggiuntive
   if (r.note) {
     y += 4;
     doc.setTextColor(30, 30, 30);
@@ -137,7 +187,6 @@ export async function generatePDF(r) {
       reader.onload = () => res(reader.result);
       reader.readAsDataURL(firmaBlob);
     });
-    // Mantieni proporzioni: larghezza fissa 50mm, altezza proporzionale
     const firmaW = 50;
     const firmaH = firmaW * (368 / 599);
     doc.addImage(firmaBase64, "PNG", margin, y, firmaW, firmaH);
