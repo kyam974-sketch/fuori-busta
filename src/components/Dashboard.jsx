@@ -3,6 +3,7 @@ import RicevutaForm from "./RicevutaForm";
 import RicevutaList from "./RicevutaList";
 import Clienti from "./Clienti";
 import Prestazioni from "./Prestazioni";
+import Profilo from "./Profilo";
 
 const SHEET_ID = import.meta.env.VITE_SHEET_ID;
 const API_KEY = import.meta.env.VITE_SHEETS_API_KEY;
@@ -12,7 +13,7 @@ export default function Dashboard({ onLogout }) {
   const [ricevute, setRicevute] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
-  const [section, setSection] = useState("ricevute"); // ricevute | clienti | prestazioni
+  const [section, setSection] = useState("ricevute");
   const [anno, setAnno] = useState(new Date().getFullYear().toString());
 
   const fetchRicevute = async () => {
@@ -37,16 +38,21 @@ export default function Dashboard({ onLogout }) {
 
   const anni = [...new Set(ricevute.map(r => r.annoFiscale))].sort().reverse();
   const filtered = ricevute.filter(r => r.annoFiscale === anno);
+
   const totLordo = filtered.reduce((s, r) => s + r.lordo, 0);
   const totRitenuta = filtered.reduce((s, r) => s + r.ritenuta, 0);
   const totNetto = filtered.reduce((s, r) => s + r.netto, 0);
+  const totIncassato = filtered.filter(r => r.pagato === "SÌ").reduce((s, r) => s + r.netto, 0);
+  const totDaIncassare = filtered.filter(r => r.pagato !== "SÌ").reduce((s, r) => s + r.netto, 0);
+
+  const sections = ["ricevute", "clienti", "prestazioni", "profilo"];
 
   return (
     <div className="dashboard">
       <header className="top-bar">
         <div className="brand">fuori busta</div>
         <nav className="nav-tabs">
-          {["ricevute", "clienti", "prestazioni"].map(s => (
+          {sections.map(s => (
             <button
               key={s}
               className={`nav-tab ${section === s ? "active" : ""}`}
@@ -84,8 +90,16 @@ export default function Dashboard({ onLogout }) {
                   <span className="tot-val">€ {totRitenuta.toFixed(2)}</span>
                 </div>
                 <div className="tot-card">
-                  <span className="tot-label">Netto incassato</span>
+                  <span className="tot-label">Netto totale</span>
                   <span className="tot-val">€ {totNetto.toFixed(2)}</span>
+                </div>
+                <div className="tot-card green">
+                  <span className="tot-label">✓ Incassato</span>
+                  <span className="tot-val">€ {totIncassato.toFixed(2)}</span>
+                </div>
+                <div className="tot-card orange">
+                  <span className="tot-label">⏳ Da incassare</span>
+                  <span className="tot-val">€ {totDaIncassare.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -110,6 +124,7 @@ export default function Dashboard({ onLogout }) {
 
       {section === "clienti" && <main className="main-content"><Clienti /></main>}
       {section === "prestazioni" && <main className="main-content"><Prestazioni /></main>}
+      {section === "profilo" && <main className="main-content"><Profilo /></main>}
     </div>
   );
 }
