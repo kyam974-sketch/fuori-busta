@@ -123,7 +123,11 @@ export async function generatePDF(r) {
   }
 
   // Firma
-  y += 10;
+  y += 14;
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.text("Firma del prestatore", margin, y);
+  y += 4;
   try {
     const firmaUrl = window.location.origin + "/firma.png";
     const firmaRes = await fetch(firmaUrl);
@@ -133,16 +137,14 @@ export async function generatePDF(r) {
       reader.onload = () => res(reader.result);
       reader.readAsDataURL(firmaBlob);
     });
-    doc.addImage(firmaBase64, "PNG", margin, y, 60, 18);
-    y += 20;
+    // Mantieni proporzioni: larghezza fissa 50mm, altezza proporzionale
+    const firmaW = 50;
+    const firmaH = firmaW * (368 / 599);
+    doc.addImage(firmaBase64, "PNG", margin, y, firmaW, firmaH);
   } catch {
     doc.setDrawColor(30, 30, 30);
-    doc.line(margin, y, margin + 60, y);
-    y += 4;
+    doc.line(margin, y + 8, margin + 60, y + 8);
   }
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
-  doc.text("Firma del prestatore", margin, y);
 
   doc.save(`Ricevuta_${r.numero}_${r.data?.replace(/\//g, "-")}.pdf`);
 }
