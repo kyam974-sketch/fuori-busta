@@ -11,13 +11,7 @@ function getSheets() {
   return google.sheets({ version: 'v4', auth });
 }
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-  },
-};
+export const config = { api: { bodyParser: { sizeLimit: '1mb' } } };
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -31,7 +25,29 @@ export default async function handler(req, res) {
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     console.log('Body received:', JSON.stringify(data));
     const sheetName = data._sheet || "Ricevute Prestazioni Occasionali";
+    const sheets = getSheets();
 
+    // REPLACE: sovrascrivi tutte le righe dati (dalla riga 2 in poi)
+    if (data._action === "replace") {
+      const rows = data._rows || [];
+      // Prima pulisci dalla riga 2 in poi
+      await sheets.spreadsheets.values.clear({
+        spreadsheetId: SHEET_ID,
+        range: `${sheetName}!A2:Z1000`,
+      });
+      // Poi riscrivi se ci sono righe
+      if (rows.length > 0) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: SHEET_ID,
+          range: `${sheetName}!A2`,
+          valueInputOption: 'USER_ENTERED',
+          requestBody: { values: rows },
+        });
+      }
+      return res.status(200).json({ success: true });
+    }
+
+    // APPEND: aggiungi una riga
     let row;
     if (sheetName === "Clienti") {
       row = [data.nome, data.cf, data.indirizzo, data.email, data.telefono, data.note];
@@ -46,7 +62,6 @@ export default async function handler(req, res) {
       ];
     }
 
-    const sheets = getSheets();
     await sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
       range: sheetName,
