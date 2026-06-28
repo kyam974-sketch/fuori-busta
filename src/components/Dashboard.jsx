@@ -100,7 +100,7 @@ export default function Dashboard({ onLogout }) {
                 <button className="btn-ghost" onClick={() => setView("list")}>← Lista</button>
               </div>
               <RicevutaForm
-                nextNumero={ricevute.length + 1}
+                nextNumero={ricevute.length ? Math.max(...ricevute.map(r => parseInt(r.numero) || 0)) + 1 : 1}
                 onSaved={() => { fetchRicevute(); setView("list"); }}
               />
             </>
