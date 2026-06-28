@@ -87,6 +87,7 @@ export function generatePDF(r) {
     doc.setTextColor(100, 100, 100);
     doc.text(label, labelX, y);
     doc.setTextColor(30, 30, 30);
+    doc.setFontSize(bold ? 10 : 9);
     doc.text(val, importiX, y, { align: "right" });
     y += 6;
   };
@@ -97,7 +98,7 @@ export function generatePDF(r) {
   doc.setDrawColor(30, 30, 30);
   doc.line(labelX, y, importiX, y);
   y += 4;
-  addRow("Importo netto da corrispondere", `€ ${parseFloat(r.netto).toFixed(2)}`, true);
+  addRow("Netto da corrispondere", `€ ${parseFloat(r.netto).toFixed(2)}`, true);
 
   // Note legali
   y += 10;
