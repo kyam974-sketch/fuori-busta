@@ -11,6 +11,14 @@ function getSheets() {
   return google.sheets({ version: 'v4', auth });
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+};
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -20,7 +28,8 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ success: false });
 
   try {
-    const data = req.body;
+    const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    console.log('Body received:', JSON.stringify(data));
     const sheetName = data._sheet || "Ricevute Prestazioni Occasionali";
 
     let row;
