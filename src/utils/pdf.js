@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 
-export function generatePDF(r) {
+export async function generatePDF(r) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 20;
   let y = margin;
@@ -123,10 +123,23 @@ export function generatePDF(r) {
   }
 
   // Firma
-  y += 16;
-  doc.setDrawColor(30, 30, 30);
-  doc.line(margin, y, margin + 60, y);
-  y += 4;
+  y += 10;
+  try {
+    const firmaUrl = window.location.origin + "/firma.png";
+    const firmaRes = await fetch(firmaUrl);
+    const firmaBlob = await firmaRes.blob();
+    const firmaBase64 = await new Promise(res => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.readAsDataURL(firmaBlob);
+    });
+    doc.addImage(firmaBase64, "PNG", margin, y, 60, 18);
+    y += 20;
+  } catch {
+    doc.setDrawColor(30, 30, 30);
+    doc.line(margin, y, margin + 60, y);
+    y += 4;
+  }
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   doc.text("Firma del prestatore", margin, y);
