@@ -37,6 +37,35 @@ export async function generatePDF(r) {
   y = 30;
   doc.setTextColor(30, 30, 30);
 
+  // Marca da bollo (in alto a destra)
+  if (r.bollo) {
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(0.3);
+    doc.rect(140, 22, 50, 16);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text("Marca da bollo digitale @e.bollo", 165, 27, { align: "center" });
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 30, 30);
+    const bolloLines = doc.splitTextToSize(r.bollo, 44);
+    doc.text(bolloLines, 165, 32, { align: "center" });
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    doc.text("€ 2,00", 165, 36, { align: "center" });
+  } else if (parseFloat(r.lordo) <= 77.47) {
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(0.3);
+    doc.rect(120, 22, 70, 12);
+    doc.setFontSize(6.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    const esenteLines = doc.splitTextToSize("Esente da bollo ai sensi dell'art. 13 Tariffa All. B D.P.R. 642/72", 64);
+    doc.text(esenteLines, 155, 27, { align: "center" });
+  }
+
   // Prestatore
   const nome = profilo?.nome || r.prestatore || "Chiara Marchese";
   const cf = profilo?.cf || "MRCCHR74P44G716W";
