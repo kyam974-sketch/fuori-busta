@@ -105,6 +105,12 @@ export async function generatePDF(r) {
     doc.setFontSize(9);
     doc.text(`C.F. ${r.cfCommittente}`, margin, y);
   }
+  if (r.indirizzoCommittente) {
+    y += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(r.indirizzoCommittente, margin, y);
+  }
 
   // Divider
   y += 10;
