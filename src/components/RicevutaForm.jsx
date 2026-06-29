@@ -147,7 +147,18 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
           <label>Note</label>
           <input type="text" value={form.note} onChange={e => set("note", e.target.value)} />
         </div>
+        {form.lordo > 77.47 && (
+          <div className="field full">
+            <label>Codice marca da bollo @e.bollo</label>
+            <input type="text" value={form.bollo || ""} onChange={e => set("bollo", e.target.value)} placeholder="Es. XXXXXXXXXXXXXXXX" />
+          </div>
+        )}
       </div>
+      {form.lordo > 77.47 && (
+        <div className="bollo-warning">
+          ⚠️ Importo superiore a €77,47 — è obbligatoria la marca da bollo da €2,00. Inserisci il codice @e.bollo qui sotto.
+        </div>
+      )}
       {error && <p className="error">{error}</p>}
       <div className="form-actions">
         <button className="btn-ghost" onClick={handlePDF}>📄 Anteprima PDF</button>
