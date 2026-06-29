@@ -38,7 +38,7 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
       fetchSheet("Clienti", "A2:F100"),
       fetchSheet("Prestazioni", "A2:C100")
     ]).then(([clientiRows, prestazioniRows]) => {
-      const c = clientiRows.map(r => ({ nome: r[0] || "", cf: r[1] || "" }));
+      const c = clientiRows.map(r => ({ nome: r[0] || "", cf: r[1] || "", indirizzo: r[2] || "" }));
       const p = prestazioniRows.map(r => ({ descrizione: r[0] || "", importo: parseFloat(r[1]) || 0 }));
       clientiRef.current = c;
       prestazioniRef.current = p;
@@ -48,6 +48,7 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
         ...f,
         committente: c[0]?.nome || "",
         cfCommittente: c[0]?.cf || "",
+        indirizzoCommittente: c[0]?.indirizzo || "",
         descrizione: p[0]?.descrizione || "",
         lordo: p[0]?.importo || 0,
       }));
@@ -61,7 +62,7 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
 
   const handleClienteChange = (nome) => {
     const c = clientiRef.current.find(c => c.nome === nome);
-    setForm(f => ({ ...f, committente: nome, cfCommittente: c?.cf || "" }));
+    setForm(f => ({ ...f, committente: nome, cfCommittente: c?.cf || "", indirizzoCommittente: c?.indirizzo || "" }));
   };
 
   const handlePrestazioneChange = (desc) => {
