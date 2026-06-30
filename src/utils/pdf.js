@@ -99,18 +99,16 @@ export async function generatePDF(r) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text(r.committente, margin, y);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
   if (r.cfCommittente) {
     y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
     doc.text(`C.F. ${r.cfCommittente}`, margin, y);
   }
-  if (r.indirizzoCommittente) {
-    y += 4;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text(r.indirizzoCommittente, margin, y);
-  }
+  const viaLine = [r.viaCommittente, r.civicoCommittente].filter(Boolean).join(" ");
+  const cittaLine = [r.capCommittente, r.cittaCommittente, r.provinciaCommittente ? `(${r.provinciaCommittente})` : ""].filter(Boolean).join(" ");
+  if (viaLine) { y += 4; doc.text(viaLine, margin, y); }
+  if (cittaLine) { y += 4; doc.text(cittaLine, margin, y); }
 
   // Divider
   y += 10;
