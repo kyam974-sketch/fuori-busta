@@ -6,29 +6,30 @@ const SHEET_ID = import.meta.env.VITE_SHEET_ID;
 const API_KEY = import.meta.env.VITE_SHEETS_API_KEY;
 const SHEET_NAME = "Clienti";
 
-const EMPTY = { nome: "", cf: "", indirizzo: "", email: "", telefono: "", note: "" };
+const EMPTY = { nome: "", cf: "", via: "", civico: "", cap: "", citta: "", provincia: "", email: "", telefono: "", note: "" };
 
 export default function Clienti() {
   const [clienti, setClienti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null); // { index, data }
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [confirm, setConfirm] = useState(null); // index to delete
+  const [confirm, setConfirm] = useState(null);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const fetchClienti = async () => {
     setLoading(true);
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME + "!A2:F100")}?key=${API_KEY}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME + "!A2:J100")}?key=${API_KEY}`;
       const res = await fetch(url);
       const data = await res.json();
       setClienti((data.values || []).map(r => ({
-        nome: r[0]||"", cf: r[1]||"", indirizzo: r[2]||"",
-        email: r[3]||"", telefono: r[4]||"", note: r[5]||"",
+        nome: r[0]||"", cf: r[1]||"", via: r[2]||"", civico: r[3]||"",
+        cap: r[4]||"", citta: r[5]||"", provincia: r[6]||"",
+        email: r[7]||"", telefono: r[8]||"", note: r[9]||"",
       })));
     } catch(e) { console.error(e); }
     setLoading(false);
@@ -36,17 +37,19 @@ export default function Clienti() {
 
   useEffect(() => { fetchClienti(); }, []);
 
+  const toRows = (list) => list.map(c => [
+    c.nome, c.cf, c.via, c.civico, c.cap, c.citta, c.provincia, c.email, c.telefono, c.note
+  ]);
+
   const handleSave = async () => {
     if (!form.nome) { setError("Il nome è obbligatorio"); return; }
     setSaving(true); setError("");
     try {
       if (editing !== null) {
-        // Update: riscrivi tutto il foglio
         const updated = clienti.map((c, i) => i === editing.index ? form : c);
-        const rows = updated.map(c => [c.nome, c.cf, c.indirizzo, c.email, c.telefono, c.note]);
         await fetch(SCRIPT_URL, {
           method: "POST",
-          body: JSON.stringify({ _sheet: SHEET_NAME, _action: "replace", _rows: rows }),
+          body: JSON.stringify({ _sheet: SHEET_NAME, _action: "replace", _rows: toRows(updated) }),
         });
       } else {
         await fetch(SCRIPT_URL, {
@@ -62,19 +65,26 @@ export default function Clienti() {
 
   const handleDelete = async (index) => {
     const updated = clienti.filter((_, i) => i !== index);
-    const rows = updated.map(c => [c.nome, c.cf, c.indirizzo, c.email, c.telefono, c.note]);
     await fetch(SCRIPT_URL, {
       method: "POST",
-      body: JSON.stringify({ _sheet: SHEET_NAME, _action: "replace", _rows: rows }),
+      body: JSON.stringify({ _sheet: SHEET_NAME, _action: "replace", _rows: toRows(updated) }),
     });
     setConfirm(null);
     fetchClienti();
   };
 
   const startEdit = (c, index) => {
-    setForm({ ...c });
+    setForm({ ...EMPTY, ...c });
     setEditing({ index });
     setShowForm(true);
+  };
+
+  const formatIndirizzo = (c) => {
+    const parts = [];
+    if (c.via) parts.push(c.via + (c.civico ? ` ${c.civico}` : ""));
+    const cittaParts = [c.cap, c.citta, c.provincia ? `(${c.provincia})` : ""].filter(Boolean);
+    if (cittaParts.length) parts.push(cittaParts.join(" "));
+    return parts.join(" – ");
   };
 
   return (
@@ -96,8 +106,19 @@ export default function Clienti() {
               <input value={form.cf} onChange={e => set("cf", e.target.value)} /></div>
             <div className="field"><label>Telefono</label>
               <input value={form.telefono} onChange={e => set("telefono", e.target.value)} /></div>
-            <div className="field full"><label>Indirizzo</label>
-              <input value={form.indirizzo} onChange={e => set("indirizzo", e.target.value)} /></div>
+
+            <div className="field" style={{gridColumn:"span 2"}}><label>Via</label>
+              <input value={form.via} onChange={e => set("via", e.target.value)} /></div>
+            <div className="field"><label>N. civico</label>
+              <input value={form.civico} onChange={e => set("civico", e.target.value)} /></div>
+
+            <div className="field"><label>CAP</label>
+              <input value={form.cap} onChange={e => set("cap", e.target.value)} /></div>
+            <div className="field" style={{gridColumn:"span 2"}}><label>Città</label>
+              <input value={form.citta} onChange={e => set("citta", e.target.value)} /></div>
+            <div className="field"><label>Provincia</label>
+              <input value={form.provincia} onChange={e => set("provincia", e.target.value)} maxLength={2} /></div>
+
             <div className="field full"><label>Email</label>
               <input value={form.email} onChange={e => set("email", e.target.value)} /></div>
             <div className="field full"><label>Note</label>
@@ -125,7 +146,7 @@ export default function Clienti() {
                 </div>
               </div>
               {c.cf && <div className="card-date">C.F. {c.cf}</div>}
-              {c.indirizzo && <div className="card-desc">{c.indirizzo}</div>}
+              {formatIndirizzo(c) && <div className="card-desc">{formatIndirizzo(c)}</div>}
               <div className="card-importi">
                 {c.email && <span>✉ {c.email}</span>}
                 {c.telefono && <span>📞 {c.telefono}</span>}

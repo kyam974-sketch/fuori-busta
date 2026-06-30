@@ -38,7 +38,10 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
       fetchSheet("Clienti", "A2:F100"),
       fetchSheet("Prestazioni", "A2:C100")
     ]).then(([clientiRows, prestazioniRows]) => {
-      const c = clientiRows.map(r => ({ nome: r[0] || "", cf: r[1] || "", indirizzo: r[2] || "" }));
+      const c = clientiRows.map(r => ({
+        nome: r[0] || "", cf: r[1] || "", via: r[2] || "", civico: r[3] || "",
+        cap: r[4] || "", citta: r[5] || "", provincia: r[6] || "",
+      }));
       const p = prestazioniRows.map(r => ({ descrizione: r[0] || "", importo: parseFloat(r[1]) || 0 }));
       clientiRef.current = c;
       prestazioniRef.current = p;
@@ -48,7 +51,11 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
         ...f,
         committente: c[0]?.nome || "",
         cfCommittente: c[0]?.cf || "",
-        indirizzoCommittente: c[0]?.indirizzo || "",
+        viaCommittente: c[0]?.via || "",
+        civicoCommittente: c[0]?.civico || "",
+        capCommittente: c[0]?.cap || "",
+        cittaCommittente: c[0]?.citta || "",
+        provinciaCommittente: c[0]?.provincia || "",
         descrizione: p[0]?.descrizione || "",
         lordo: p[0]?.importo || 0,
       }));
@@ -62,7 +69,16 @@ export default function RicevutaForm({ nextNumero, onSaved }) {
 
   const handleClienteChange = (nome) => {
     const c = clientiRef.current.find(c => c.nome === nome);
-    setForm(f => ({ ...f, committente: nome, cfCommittente: c?.cf || "", indirizzoCommittente: c?.indirizzo || "" }));
+    setForm(f => ({
+      ...f,
+      committente: nome,
+      cfCommittente: c?.cf || "",
+      viaCommittente: c?.via || "",
+      civicoCommittente: c?.civico || "",
+      capCommittente: c?.cap || "",
+      cittaCommittente: c?.citta || "",
+      provinciaCommittente: c?.provincia || "",
+    }));
   };
 
   const handlePrestazioneChange = (desc) => {
