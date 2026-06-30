@@ -17,22 +17,56 @@ async function fetchProfilo() {
   return null;
 }
 
+async function fetchClienteIndirizzo(nomeCommittente) {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent("Clienti!A2:G100")}?key=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const rows = data.values || [];
+    const match = rows.find(row => row[0] === nomeCommittente);
+    if (match) {
+      return {
+        via: match[2] || "", civico: match[3] || "",
+        cap: match[4] || "", citta: match[5] || "", provincia: match[6] || "",
+      };
+    }
+  } catch(e) { console.error(e); }
+  return null;
+}
+
 export async function generatePDF(r) {
   const profilo = await fetchProfilo();
+
+  // Se l'indirizzo del committente non è già presente nei dati passati, lo recupera dal foglio Clienti
+  let indirizzoData = {
+    viaCommittente: r.viaCommittente, civicoCommittente: r.civicoCommittente,
+    capCommittente: r.capCommittente, cittaCommittente: r.cittaCommittente, provinciaCommittente: r.provinciaCommittente,
+  };
+  if (!indirizzoData.viaCommittente && !indirizzoData.cittaCommittente && r.committente) {
+    const found = await fetchClienteIndirizzo(r.committente);
+    if (found) {
+      indirizzoData = {
+        viaCommittente: found.via, civicoCommittente: found.civico,
+        capCommittente: found.cap, cittaCommittente: found.citta, provinciaCommittente: found.provincia,
+      };
+    }
+  }
+  r = { ...r, ...indirizzoData };
+
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 20;
   let y = margin;
 
   // Header
   doc.setFillColor(30, 30, 30);
-  doc.rect(0, 0, 210, 18, "F");
+  doc.rect(1, 0, 208, 18, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("RICEVUTA DI PRESTAZIONE OCCASIONALE", margin, 12);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(`N. ${r.numero}  |  ${r.data}`, 210 - margin, 12, { align: "right" });
+  doc.text(`N. ${r.numero}  |  ${r.data}`, 209 - margin, 12, { align: "right" });
 
   y = 30;
   doc.setTextColor(30, 30, 30);
