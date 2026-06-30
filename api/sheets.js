@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     // APPEND: aggiungi una riga
     let row;
     if (sheetName === "Clienti") {
-      row = [data.nome, data.cf, data.indirizzo, data.email, data.telefono, data.note];
+      row = [data.nome, data.cf, data.via, data.civico, data.cap, data.citta, data.provincia, data.email, data.telefono, data.note];
     } else if (sheetName === "Prestazioni") {
       row = [data.descrizione, data.importo, data.categoria];
     } else {
