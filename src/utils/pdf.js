@@ -38,24 +38,17 @@ export async function generatePDF(r) {
   doc.setTextColor(30, 30, 30);
 
   // Marca da bollo (in alto a destra)
-  if (r.bollo) {
+  if (parseFloat(r.lordo) > 77.47) {
     doc.setDrawColor(180, 180, 180);
     doc.setLineWidth(0.3);
-    doc.rect(140, 22, 50, 16);
+    doc.rect(150, 22, 40, 18);
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 100, 100);
-    doc.text("Marca da bollo digitale @e.bollo", 165, 27, { align: "center" });
-    doc.setFontSize(7.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 30, 30);
-    const bolloLines = doc.splitTextToSize(r.bollo, 44);
-    doc.text(bolloLines, 165, 32, { align: "center" });
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 100, 100);
-    doc.text("€ 2,00", 165, 36, { align: "center" });
-  } else if (parseFloat(r.lordo) <= 77.47) {
+    doc.setTextColor(150, 150, 150);
+    doc.text("Spazio per", 170, 29, { align: "center" });
+    doc.text("marca da bollo", 170, 33, { align: "center" });
+    doc.text("€ 2,00", 170, 37, { align: "center" });
+  } else {
     doc.setDrawColor(180, 180, 180);
     doc.setLineWidth(0.3);
     doc.rect(120, 22, 70, 12);
